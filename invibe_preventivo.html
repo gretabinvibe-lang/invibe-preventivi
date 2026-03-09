@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>InVibe — Generatore Preventivi</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  :root {
+    --blue-deep: #0a1628;
+    --blue-mid: #0d2d5e;
+    --blue-bright: #1565c0;
+    --blue-light: #1e88e5;
+    --blue-glow: #42a5f5;
+    --accent: #00e5ff;
+    --white: #ffffff;
+    --soft: #e8f4fd;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--blue-deep);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    color: var(--white);
+    background-image: radial-gradient(ellipse at 20% 50%, rgba(21,101,192,0.15) 0%, transparent 60%),
+                      radial-gradient(ellipse at 80% 20%, rgba(0,229,255,0.08) 0%, transparent 50%);
+  }
+
+  /* ── HEADER ── */
+  .app-header {
+    padding: 28px 40px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+  }
+  .logo-mark {
+    width: 42px; height: 42px;
+    background: linear-gradient(135deg, var(--blue-light), var(--accent));
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800; font-size: 18px;
+    color: var(--blue-deep);
+    box-shadow: 0 0 20px rgba(0,229,255,0.3);
+  }
+  .app-header h1 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800; font-size: 22px;
+    letter-spacing: -0.5px;
+  }
+  .app-header span { color: var(--accent); }
+  .subtitle { font-size: 12px; color: rgba(255,255,255,0.45); margin-top: 2px; }
+
+  /* ── LAYOUT ── */
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    align-items: start;
+  }
+
+  /* ── FORM PANEL ── */
+  .panel {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 20px;
+    padding: 32px;
+    backdrop-filter: blur(10px);
+  }
+  .panel-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700; font-size: 15px;
+    letter-spacing: 0.05em; text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 24px;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  label {
+    display: block;
+    font-size: 12px; font-weight: 500;
+    color: rgba(255,255,255,0.55);
+    text-transform: uppercase; letter-spacing: 0.08em;
+    margin-bottom: 8px; margin-top: 20px;
+  }
+  label:first-of-type { margin-top: 0; }
+
+  input[type="text"], textarea, select {
+    width: 100%;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 10px;
+    padding: 12px 16px;
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+    resize: vertical;
+  }
+  input[type="text"]:focus, textarea:focus, select:focus {
+    border-color: var(--accent);
+    background: rgba(0,229,255,0.05);
+  }
+  select option { background: var(--blue-mid); color: var(--white); }
+  textarea { min-height: 180px; line-height: 1.6; }
+
+  /* meta selector */
+  .meta-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 4px;
+  }
+  .meta-btn {
+    padding: 10px 8px;
+    border-radius: 10px;
+    border: 1.5px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.04);
+    color: rgba(255,255,255,0.6);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px; font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+  .meta-btn:hover { border-color: rgba(255,255,255,0.3); color: var(--white); }
+  .meta-btn.active {
+    border-color: var(--accent);
+    background: rgba(0,229,255,0.1);
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  /* generate btn */
+  .btn-generate {
+    width: 100%;
+    margin-top: 28px;
+    padding: 16px;
+    background: linear-gradient(135deg, var(--blue-light), var(--accent));
+    border: none; border-radius: 12px;
+    color: var(--blue-deep);
+    font-family: 'Syne', sans-serif;
+    font-weight: 700; font-size: 15px;
+    letter-spacing: 0.03em;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+    box-shadow: 0 4px 24px rgba(0,229,255,0.25);
+  }
+  .btn-generate:hover { opacity: 0.9; transform: translateY(-1px); }
+  .btn-generate:active { transform: translateY(0); }
+
+  /* ── PREVIEW PANEL ── */
+  .preview-panel { position: sticky; top: 40px; }
+  .preview-wrap {
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+
+  /* ── CARD (the exported image) ── */
+  #card {
+    width: 600px;
+    font-family: 'DM Sans', sans-serif;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card-bg {
+    position: absolute; inset: 0;
+    z-index: 0;
+  }
+  .card-content { position: relative; z-index: 1; }
+
+  .card-header {
+    padding: 28px 32px 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .card-brand {
+    display: flex; align-items: center; gap: 10px;
+  }
+  .card-logo {
+    width: 38px; height: 38px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800; font-size: 15px;
+  }
+  .card-brand-name {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800; font-size: 20px;
+    color: white;
+  }
+  .card-meta-badge {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px; font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .card-divider {
+    height: 1px;
+    margin: 0 32px;
+    opacity: 0.25;
+  }
+
+  .card-body { padding: 24px 32px; }
+
+  .card-nome {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700; font-size: 22px;
+    color: white;
+    margin-bottom: 16px;
+  }
+
+  .card-text {
+    font-size: 14px;
+    line-height: 1.75;
+    color: rgba(255,255,255,0.88);
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .card-totale-box {
+    margin: 22px 0 0;
+    padding: 18px 22px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .card-totale-label {
+    font-size: 12px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    opacity: 0.7;
+    color: white;
+  }
+  .card-totale-val {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800; font-size: 28px;
+    color: white;
+  }
+
+  .card-rate-box {
+    margin-top: 12px;
+    padding: 14px 22px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.85);
+  }
+  .card-rate-icon { font-size: 18px; }
+
+  .card-footer {
+    padding: 16px 32px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    opacity: 0.5;
+    font-size: 11px;
+    color: white;
+    letter-spacing: 0.05em;
+  }
+
+  /* ── DOWNLOAD BTN ── */
+  .btn-download {
+    width: 100%;
+    margin-top: 16px;
+    padding: 14px;
+    background: rgba(255,255,255,0.06);
+    border: 1.5px solid rgba(255,255,255,0.15);
+    border-radius: 12px;
+    color: var(--white);
+    font-family: 'Syne', sans-serif;
+    font-weight: 600; font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .btn-download:hover {
+    background: rgba(0,229,255,0.1);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* ── THEMES ── */
+  /* PAG */
+  .theme-pag .card-bg { background: linear-gradient(145deg, #0a1628 0%, #0d3b6e 50%, #0a2a4a 100%); }
+  .theme-pag .card-logo { background: rgba(0,229,255,0.2); color: #00e5ff; }
+  .theme-pag .card-meta-badge { background: rgba(0,229,255,0.15); color: #00e5ff; border: 1px solid rgba(0,229,255,0.3); }
+  .theme-pag .card-divider { background: #00e5ff; }
+  .theme-pag .card-totale-box { background: rgba(0,229,255,0.12); border: 1px solid rgba(0,229,255,0.2); }
+  .theme-pag .card-totale-val { color: #00e5ff; }
+  .theme-pag .card-rate-box { background: rgba(255,255,255,0.06); }
+
+  /* CORFÙ */
+  .theme-corfu .card-bg { background: linear-gradient(145deg, #0d1f0d 0%, #0a3d1a 50%, #062b10 100%); }
+  .theme-corfu .card-logo { background: rgba(0,230,118,0.2); color: #00e676; }
+  .theme-corfu .card-meta-badge { background: rgba(0,230,118,0.15); color: #00e676; border: 1px solid rgba(0,230,118,0.3); }
+  .theme-corfu .card-divider { background: #00e676; }
+  .theme-corfu .card-totale-box { background: rgba(0,230,118,0.1); border: 1px solid rgba(0,230,118,0.2); }
+  .theme-corfu .card-totale-val { color: #00e676; }
+  .theme-corfu .card-rate-box { background: rgba(255,255,255,0.06); }
+
+  /* ZANTE */
+  .theme-zante .card-bg { background: linear-gradient(145deg, #1a0f00 0%, #4a2800 50%, #2d1800 100%); }
+  .theme-zante .card-logo { background: rgba(255,183,0,0.2); color: #ffb700; }
+  .theme-zante .card-meta-badge { background: rgba(255,183,0,0.15); color: #ffb700; border: 1px solid rgba(255,183,0,0.3); }
+  .theme-zante .card-divider { background: #ffb700; }
+  .theme-zante .card-totale-box { background: rgba(255,183,0,0.1); border: 1px solid rgba(255,183,0,0.2); }
+  .theme-zante .card-totale-val { color: #ffb700; }
+  .theme-zante .card-rate-box { background: rgba(255,255,255,0.06); }
+
+  /* GALLIPOLI */
+  .theme-gallipoli .card-bg { background: linear-gradient(145deg, #1a0a1a 0%, #4a0d3a 50%, #2d0828 100%); }
+  .theme-gallipoli .card-logo { background: rgba(240,98,146,0.2); color: #f06292; }
+  .theme-gallipoli .card-meta-badge { background: rgba(240,98,146,0.15); color: #f06292; border: 1px solid rgba(240,98,146,0.3); }
+  .theme-gallipoli .card-divider { background: #f06292; }
+  .theme-gallipoli .card-totale-box { background: rgba(240,98,146,0.1); border: 1px solid rgba(240,98,146,0.2); }
+  .theme-gallipoli .card-totale-val { color: #f06292; }
+  .theme-gallipoli .card-rate-box { background: rgba(255,255,255,0.06); }
+
+  /* SARDEGNA */
+  .theme-sardegna .card-bg { background: linear-gradient(145deg, #001a1a 0%, #003d3d 50%, #002828 100%); }
+  .theme-sardegna .card-logo { background: rgba(0,188,212,0.2); color: #00bcd4; }
+  .theme-sardegna .card-meta-badge { background: rgba(0,188,212,0.15); color: #00bcd4; border: 1px solid rgba(0,188,212,0.3); }
+  .theme-sardegna .card-divider { background: #00bcd4; }
+  .theme-sardegna .card-totale-box { background: rgba(0,188,212,0.1); border: 1px solid rgba(0,188,212,0.2); }
+  .theme-sardegna .card-totale-val { color: #00bcd4; }
+  .theme-sardegna .card-rate-box { background: rgba(255,255,255,0.06); }
+
+  @media (max-width: 900px) {
+    .container { grid-template-columns: 1fr; }
+    .preview-panel { position: static; }
+    #card { width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <div class="logo-mark">IV</div>
+  <div>
+    <h1>In<span>Vibe</span> — Preventivi</h1>
+    <div class="subtitle">Genera immagini preventivo da condividere</div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- FORM -->
+  <div class="panel">
+    <div class="panel-title">⚙️ Configura preventivo</div>
+
+    <label>Meta 🌍</label>
+    <div class="meta-grid">
+      <button class="meta-btn active" onclick="setMeta('pag','Isola di Pag 🏝️','pag')">Isola di Pag 🏝️</button>
+      <button class="meta-btn" onclick="setMeta('corfu','Corfù 🌊','corfu')">Corfù 🌊</button>
+      <button class="meta-btn" onclick="setMeta('zante','Zante ⚓','zante')">Zante ⚓</button>
+      <button class="meta-btn" onclick="setMeta('gallipoli','Gallipoli ☀️','gallipoli')">Gallipoli ☀️</button>
+      <button class="meta-btn" onclick="setMeta('sardegna','Sardegna 🌺','sardegna')">Sardegna 🌺</button>
+    </div>
+
+    <label>Nome cliente</label>
+    <input type="text" id="inp-nome" placeholder="es. Alessia" oninput="updateCard()">
+
+    <label>Testo preventivo</label>
+    <textarea id="inp-testo" placeholder="Incolla qui il testo del preventivo dal foglio Google..." oninput="updateCard()"></textarea>
+
+    <label>Totale (€)</label>
+    <input type="text" id="inp-totale" placeholder="es. 602,50" oninput="updateCard()">
+
+    <label>Info rate di pagamento</label>
+    <input type="text" id="inp-rate" placeholder="es. Prima rata 64€ + 6 rate da ~90€" oninput="updateCard()">
+
+    <button class="btn-generate" onclick="updateCard()">✨ Aggiorna anteprima</button>
+  </div>
+
+  <!-- PREVIEW -->
+  <div class="preview-panel">
+    <div class="panel-title">👁️ Anteprima</div>
+    <div class="preview-wrap">
+      <div id="card" class="theme-pag">
+        <div class="card-bg"></div>
+        <div class="card-content">
+
+          <div class="card-header">
+            <div class="card-brand">
+              <div class="card-logo">IV</div>
+              <div class="card-brand-name">InVibe</div>
+            </div>
+            <div class="card-meta-badge" id="card-meta-badge">Isola di Pag 🏝️</div>
+          </div>
+
+          <div class="card-divider"></div>
+
+          <div class="card-body">
+            <div class="card-nome" id="card-nome">Preventivo per te 👋</div>
+            <div class="card-text" id="card-testo">Incolla il testo del preventivo nel pannello a sinistra per vedere l'anteprima qui...</div>
+
+            <div class="card-totale-box">
+              <div>
+                <div class="card-totale-label">Totale con sconto</div>
+              </div>
+              <div class="card-totale-val" id="card-totale">€ —</div>
+            </div>
+
+            <div class="card-rate-box" id="card-rate-box">
+              <div class="card-rate-icon">💳</div>
+              <div id="card-rate">Prima rata + rateizzazione disponibile</div>
+            </div>
+          </div>
+
+          <div class="card-footer">
+            <span>invibe.it</span>
+            <span id="card-date"></span>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-download" onclick="downloadPNG()">
+      ⬇️ Scarica PNG
+    </button>
+  </div>
+
+</div>
+
+<script>
+  const metas = {
+    pag:       { label: 'Isola di Pag 🏝️',  theme: 'theme-pag' },
+    corfu:     { label: 'Corfù 🌊',          theme: 'theme-corfu' },
+    zante:     { label: 'Zante ⚓',           theme: 'theme-zante' },
+    gallipoli: { label: 'Gallipoli ☀️',      theme: 'theme-gallipoli' },
+    sardegna:  { label: 'Sardegna 🌺',       theme: 'theme-sardegna' },
+  };
+
+  let currentMeta = 'pag';
+
+  // set date
+  const d = new Date();
+  document.getElementById('card-date').textContent =
+    d.toLocaleDateString('it-IT', {day:'2-digit', month:'long', year:'numeric'});
+
+  function setMeta(key, label, themeKey) {
+    currentMeta = key;
+    // update buttons
+    document.querySelectorAll('.meta-btn').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+    // update card theme
+    const card = document.getElementById('card');
+    Object.values(metas).forEach(m => card.classList.remove(m.theme));
+    card.classList.add(metas[key].theme);
+    // update badge
+    document.getElementById('card-meta-badge').textContent = metas[key].label;
+  }
+
+  function updateCard() {
+    const nome = document.getElementById('inp-nome').value.trim();
+    const testo = document.getElementById('inp-testo').value.trim();
+    const totale = document.getElementById('inp-totale').value.trim();
+    const rate = document.getElementById('inp-rate').value.trim();
+
+    document.getElementById('card-nome').textContent =
+      nome ? 'Preventivo per ' + nome + ' 👋' : 'Il tuo preventivo 👋';
+
+    document.getElementById('card-testo').textContent =
+      testo || 'Incolla il testo del preventivo nel pannello a sinistra...';
+
+    document.getElementById('card-totale').textContent =
+      totale ? '€ ' + totale : '€ —';
+
+    if (rate) {
+      document.getElementById('card-rate').textContent = rate;
+      document.getElementById('card-rate-box').style.display = 'flex';
+    } else {
+      document.getElementById('card-rate-box').style.display = 'none';
+    }
+  }
+
+  function downloadPNG() {
+    const card = document.getElementById('card');
+    const nome = document.getElementById('inp-nome').value.trim() || 'preventivo';
+    const metaLabel = currentMeta;
+    const btn = document.querySelector('.btn-download');
+    btn.textContent = '⏳ Generazione in corso...';
+
+    html2canvas(card, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: null,
+      logging: false
+    }).then(canvas => {
+      const link = document.createElement('a');
+      link.download = 'InVibe_' + nome + '_' + metaLabel + '.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      btn.innerHTML = '⬇️ Scarica PNG';
+    }).catch(() => {
+      btn.innerHTML = '⬇️ Scarica PNG';
+      alert('Errore nella generazione. Riprova.');
+    });
+  }
+
+  // init
+  updateCard();
+</script>
+</body>
+</html>
